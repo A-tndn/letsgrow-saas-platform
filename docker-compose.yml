@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: letsgrow
+      POSTGRES_USER: letsgrow
+      POSTGRES_PASSWORD: letsgrow_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U letsgrow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://letsgrow:letsgrow_password@postgres:5432/letsgrow
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=development-secret-key-change-in-production
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TWITTER_CLIENT_ID=${TWITTER_CLIENT_ID}
+      - TWITTER_CLIENT_SECRET=${TWITTER_CLIENT_SECRET}
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: ["flask", "run", "--host=0.0.0.0", "--port=5000", "--reload"]
+
+  # Celery Worker
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://letsgrow:letsgrow_password@postgres:5432/letsgrow
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=development-secret-key-change-in-production
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TWITTER_CLIENT_ID=${TWITTER_CLIENT_ID}
+      - TWITTER_CLIENT_SECRET=${TWITTER_CLIENT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: ["celery", "-A", "app.celery", "worker", "--loglevel=info"]
+
+  # Celery Beat Scheduler
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://letsgrow:letsgrow_password@postgres:5432/letsgrow
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=development-secret-key-change-in-production
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: ["celery", "-A", "app.celery", "beat", "--loglevel=info"]
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:5000/api
+      - NEXT_PUBLIC_APP_NAME=LetsGrow
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+volumes:
+  postgres_data:
+  redis_data:
