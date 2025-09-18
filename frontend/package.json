@@ -1,0 +1,55 @@
+{
+  "name": "letsgrow-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 5000 -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -p 5000 -H 0.0.0.0",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "3.3.2",
+    "@tailwindcss/forms": "^0.5.6",
+    "@tailwindcss/typography": "^0.5.10",
+    "@tanstack/react-query": "5.0.5",
+    "@types/node": "20.8.6",
+    "@types/react": "18.2.31",
+    "@types/react-calendar": "4.1.0",
+    "@types/react-dom": "18.2.14",
+    "autoprefixer": "10.4.16",
+    "axios": "1.5.1",
+    "class-variance-authority": "0.7.0",
+    "clsx": "2.0.0",
+    "date-fns": "2.30.0",
+    "framer-motion": "10.16.4",
+    "lucide-react": "0.290.0",
+    "next": "14.0.0",
+    "postcss": "8.4.31",
+    "react": "18.2.0",
+    "react-calendar": "4.6.0",
+    "react-dnd": "16.0.1",
+    "react-dnd-html5-backend": "16.0.1",
+    "react-dom": "18.2.0",
+    "react-hook-form": "7.47.0",
+    "react-hot-toast": "2.4.1",
+    "recharts": "2.8.0",
+    "tailwind-merge": "1.14.0",
+    "tailwindcss": "3.3.5",
+    "typescript": "5.2.2",
+    "zod": "3.22.4",
+    "zustand": "4.4.4"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "6.9.0",
+    "@typescript-eslint/parser": "6.9.0",
+    "eslint": "8.51.0",
+    "eslint-config-next": "14.0.0",
+    "prettier": "3.0.3",
+    "prettier-plugin-tailwindcss": "0.5.6"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
