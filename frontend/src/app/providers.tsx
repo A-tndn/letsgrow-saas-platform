@@ -31,6 +31,7 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <Toaster position="top-right" />
         {children}
       </AuthProvider>
     </QueryClientProvider>

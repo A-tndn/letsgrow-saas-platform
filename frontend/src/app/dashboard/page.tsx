@@ -17,6 +17,7 @@ import {
   Building2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
 
 interface Subscription {
   id: number;
@@ -240,7 +241,7 @@ export default function DashboardPage() {
             <div className="bg-white rounded-lg shadow-sm border p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
+                <Link href="/social-accounts" className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
                   <div className="bg-indigo-100 p-2 rounded-lg mr-3">
                     <User className="h-5 w-5 text-indigo-600" />
                   </div>
@@ -248,27 +249,27 @@ export default function DashboardPage() {
                     <p className="font-medium text-gray-900">Connect Social Account</p>
                     <p className="text-sm text-gray-600">Link your social media profiles</p>
                   </div>
-                </button>
+                </Link>
 
-                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
+                <Link href="/content" className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
                   <div className="bg-green-100 p-2 rounded-lg mr-3">
                     <Calendar className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Schedule Posts</p>
-                    <p className="text-sm text-gray-600">Plan your content calendar</p>
+                    <p className="font-medium text-gray-900">Generate Content</p>
+                    <p className="text-sm text-gray-600">Create AI-powered posts</p>
                   </div>
-                </button>
+                </Link>
 
-                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
+                <Link href="/scheduler" className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
                   <div className="bg-purple-100 p-2 rounded-lg mr-3">
                     <TrendingUp className="h-5 w-5 text-purple-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">View Analytics</p>
-                    <p className="text-sm text-gray-600">Track your performance</p>
+                    <p className="font-medium text-gray-900">Schedule Posts</p>
+                    <p className="text-sm text-gray-600">Manage your content calendar</p>
                   </div>
-                </button>
+                </Link>
               </div>
             </div>
 
