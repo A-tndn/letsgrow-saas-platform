@@ -69,6 +69,14 @@ def register():
         # Generate JWT token for the new user
         token = generate_jwt_token(user.id)
 
+        # Create trial subscription for new user
+        from app.models.subscription import create_trial_subscription
+        try:
+            subscription = create_trial_subscription(user.id)
+            logger.info(f"Trial subscription created for user: {email}")
+        except Exception as sub_error:
+            logger.warning(f"Failed to create trial subscription: {str(sub_error)}")
+
         logger.info(f"New user registered: {email}")
 
         return jsonify({

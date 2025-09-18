@@ -11,6 +11,10 @@ class SubscriptionTier(Enum):
     BUSINESS = "business"
     ENTERPRISE = "enterprise"
 
+
+    # Relationships
+    subscription = relationship("Subscription", back_populates="user", uselist=False)
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
 

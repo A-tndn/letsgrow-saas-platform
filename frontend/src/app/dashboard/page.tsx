@@ -1,343 +1,341 @@
-'use client'
-
-import { useSocialAccounts, useAutomations, useContentQueue, useAnalyticsOverview } from '@/hooks/useApi'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
+import { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ProtectedRoute } from '../components/ProtectedRoute';
+import { api } from '../lib/api';
 import { 
-  TrendingUp, 
-  Users, 
+  User, 
+  CreditCard, 
   Calendar, 
-  Zap,
-  Plus,
-  Activity,
-  Clock,
+  TrendingUp, 
+  Settings, 
+  HelpCircle,
   CheckCircle,
   AlertCircle,
-  ArrowRight
-} from 'lucide-react'
-import { formatNumber, formatRelativeDate, getPlatformColor, getPlatformIcon } from '@/lib/utils'
-import Link from 'next/link'
+  Crown,
+  Zap,
+  Building2
+} from 'lucide-react';
+import toast from 'react-hot-toast';
 
-export default function DashboardOverview() {
-  const { data: socialAccountsData, isLoading: socialLoading } = useSocialAccounts()
-  const { data: automationsData, isLoading: automationsLoading } = useAutomations()
-  const { data: contentData, isLoading: contentLoading } = useContentQueue()
-  const { data: analyticsData, isLoading: analyticsLoading } = useAnalyticsOverview(30)
+interface Subscription {
+  id: number;
+  plan_type: string;
+  billing_cycle: string;
+  status: string;
+  amount: number;
+  currency: string;
+  is_active: boolean;
+  is_trial: boolean;
+  trial_end: string | null;
+  current_period_end: string | null;
+  days_until_trial_end: number;
+}
 
-  const socialAccounts = socialAccountsData?.data?.accounts || []
-  const automations = automationsData?.data?.automations || []
-  const contentQueue = contentData?.data?.content_queue || []
-  const analytics = analyticsData?.data?.overview || {}
+export default function DashboardPage() {
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats] = useState({
+    posts_this_month: 0,
+    engagement_rate: 0,
+    followers_gained: 0,
+    accounts_connected: 0
+  });
 
-  // Calculate key metrics
-  const activeAutomations = automations.filter(auto => auto.status === 'active').length
-  const scheduledContent = contentQueue.filter(content => content.status === 'scheduled').length
-  const publishedToday = contentQueue.filter(content => {
-    if (content.posted_at) {
-      const today = new Date().toDateString()
-      const postedDate = new Date(content.posted_at).toDateString()
-      return today === postedDate
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Check for checkout success/failure
+    const checkout = searchParams?.get('checkout');
+    if (checkout === 'success') {
+      toast.success('Subscription activated successfully! 🎉');
+    } else if (checkout === 'demo-success') {
+      toast.success('Demo subscription activated! 🚀');
+    } else if (checkout === 'canceled') {
+      toast.error('Checkout was canceled');
     }
-    return false
-  }).length
 
-  const recentContent = contentQueue
-    .filter(content => content.status !== 'cancelled')
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 5)
+    fetchSubscription();
+  }, [searchParams]);
 
-  const isLoading = socialLoading || automationsLoading || contentLoading || analyticsLoading
+  const fetchSubscription = async () => {
+    try {
+      const response = await api.get('/billing/subscription');
+      if (response.data.success) {
+        setSubscription(response.data.subscription);
+      }
+    } catch (error) {
+      console.error('Failed to fetch subscription:', error);
+      toast.error('Failed to load subscription details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getPlanIcon = (planType: string) => {
+    switch (planType) {
+      case 'professional': return Crown;
+      case 'enterprise': return Building2;
+      default: return Zap;
+    }
+  };
+
+  const getStatusColor = (status: string, isActive: boolean) => {
+    if (isActive) return 'text-green-600 bg-green-100';
+    if (status === 'trialing') return 'text-blue-600 bg-blue-100';
+    return 'text-gray-600 bg-gray-100';
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
+  };
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="pb-2">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-full"></div>
-              </CardContent>
-            </Card>
-          ))}
+      <ProtectedRoute>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading dashboard...</p>
+          </div>
         </div>
-      </div>
-    )
+      </ProtectedRoute>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-4 lg:p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">Welcome back! 👋</h1>
-        <p className="text-blue-100">
-          Here's what's happening with your social media automation today.
-        </p>
-      </div>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
+        {/* Navigation */}
+        <nav className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center">
+                <h1 className="text-2xl font-bold text-indigo-600">LetsGrow</h1>
+                <span className="ml-4 text-gray-500">Dashboard</span>
+              </div>
+              <div className="flex items-center space-x-4">
+                <span className="text-gray-600">
+                  Welcome, {user?.first_name}!
+                </span>
+                <button
+                  onClick={logout}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        </nav>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Connected Accounts</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{socialAccounts.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Across {new Set(socialAccounts.map(acc => acc.platform)).size} platforms
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Welcome Section */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Welcome to your Dashboard! 🎉
+            </h2>
+            <p className="text-gray-600">
+              Here's an overview of your social media growth journey.
             </p>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Automations</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeAutomations}</div>
-            <p className="text-xs text-muted-foreground">
-              {automations.length - activeAutomations} paused
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Scheduled Posts</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{scheduledContent}</div>
-            <p className="text-xs text-muted-foreground">
-              Ready to publish
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Published Today</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{publishedToday}</div>
-            <p className="text-xs text-muted-foreground">
-              {analytics?.total_posts || 0} this month
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-        {/* Connect Social Account */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Get started with common tasks
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link href="/dashboard/accounts">
-              <Button variant="outline" className="w-full justify-start">
-                <Users className="mr-2 h-4 w-4" />
-                Connect Social Account
-              </Button>
-            </Link>
-            <Link href="/dashboard/automations">
-              <Button variant="outline" className="w-full justify-start">
-                <Plus className="mr-2 h-4 w-4" />
-                Create Automation
-              </Button>
-            </Link>
-            <Link href="/dashboard/content">
-              <Button variant="outline" className="w-full justify-start">
-                <Calendar className="mr-2 h-4 w-4" />
-                Schedule Content
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        {/* Connected Platforms */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Connected Platforms</CardTitle>
-            <CardDescription>
-              Your active social media accounts
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {socialAccounts.length > 0 ? (
-              <div className="space-y-3">
-                {socialAccounts.slice(0, 4).map((account) => (
-                  <div key={account.id} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm ${getPlatformColor(account.platform)}`}>
-                        {getPlatformIcon(account.platform)}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">@{account.username}</p>
-                        <p className="text-xs text-gray-500 capitalize">{account.platform}</p>
-                      </div>
-                    </div>
-                    <Badge 
-                      variant={account.is_active ? "success" : "secondary"}
-                      size="sm"
-                    >
-                      {account.is_active ? "Active" : "Inactive"}
-                    </Badge>
+          {/* Subscription Status Card */}
+          {subscription && (
+            <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  {(() => {
+                    const IconComponent = getPlanIcon(subscription.plan_type);
+                    return <IconComponent className="h-8 w-8 text-indigo-600 mr-3" />;
+                  })()}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 capitalize">
+                      {subscription.plan_type} Plan
+                    </h3>
+                    <p className="text-gray-600 capitalize">
+                      {subscription.billing_cycle} billing • ${subscription.amount}/{subscription.billing_cycle === 'monthly' ? 'month' : 'year'}
+                    </p>
                   </div>
-                ))}
-
-                {socialAccounts.length > 4 && (
-                  <Link href="/dashboard/accounts">
-                    <Button variant="ghost" size="sm" className="w-full mt-2">
-                      View all {socialAccounts.length} accounts
-                      <ArrowRight className="ml-2 h-3 w-3" />
-                    </Button>
-                  </Link>
-                )}
+                </div>
+                <div className="text-right">
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(subscription.status, subscription.is_active)}`}>
+                    {subscription.is_trial ? 'Free Trial' : subscription.status}
+                  </span>
+                  {subscription.is_trial && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      {subscription.days_until_trial_end} days left
+                    </p>
+                  )}
+                </div>
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-sm text-gray-500 mb-4">
-                  No social accounts connected yet
-                </p>
-                <Link href="/dashboard/accounts">
-                  <Button size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Connect Account
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>
-              Your latest content and automations
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recentContent.length > 0 ? (
-              <div className="space-y-3">
-                {recentContent.map((content) => (
-                  <div key={content.id} className="flex items-start space-x-3">
-                    <div className="mt-1">
-                      {content.status === 'posted' && <CheckCircle className="h-4 w-4 text-green-500" />}
-                      {content.status === 'scheduled' && <Clock className="h-4 w-4 text-blue-500" />}
-                      {content.status === 'failed' && <AlertCircle className="h-4 w-4 text-red-500" />}
-                      {content.status === 'posting' && <Activity className="h-4 w-4 text-yellow-500 animate-pulse" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900 truncate">
-                        {content.content.substring(0, 50)}...
-                      </p>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <Badge 
-                          variant={
-                            content.status === 'posted' ? 'success' :
-                            content.status === 'scheduled' ? 'default' :
-                            content.status === 'failed' ? 'destructive' : 'warning'
-                          }
-                          size="sm"
-                        >
-                          {content.status}
-                        </Badge>
-                        <span className="text-xs text-gray-500">
-                          {formatRelativeDate(content.created_at)}
-                        </span>
-                      </div>
-                    </div>
+              {subscription.is_trial && subscription.days_until_trial_end <= 3 && (
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center">
+                    <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
+                    <p className="text-yellow-800">
+                      Your trial expires in {subscription.days_until_trial_end} day(s). 
+                      <button 
+                        onClick={() => router.push('/pricing')}
+                        className="ml-2 font-medium underline hover:no-underline"
+                      >
+                        Upgrade now
+                      </button>
+                    </p>
                   </div>
-                ))}
+                </div>
+              )}
+            </div>
+          )}
 
-                <Link href="/dashboard/content">
-                  <Button variant="ghost" size="sm" className="w-full mt-2">
-                    View content calendar
-                    <ArrowRight className="ml-2 h-3 w-3" />
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-sm text-gray-500 mb-4">
-                  No content activity yet
-                </p>
-                <Link href="/dashboard/automations">
-                  <Button size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Automation
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Growth Analytics Preview */}
-      {analytics.total_posts > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Growth Overview (Last 30 Days)</CardTitle>
-            <CardDescription>
-              Your social media performance summary
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
-                  {formatNumber(analytics.total_posts)}
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="flex items-center">
+                <Calendar className="h-8 w-8 text-blue-500" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Posts This Month</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.posts_this_month}</p>
                 </div>
-                <p className="text-sm text-gray-600">Posts Published</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
-                  {formatNumber(analytics.total_likes || 0)}
-                </div>
-                <p className="text-sm text-gray-600">Total Likes</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
-                  {formatNumber(analytics.total_comments || 0)}
-                </div>
-                <p className="text-sm text-gray-600">Comments</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">
-                  {analytics.average_engagement_rate?.toFixed(1) || '0.0'}%
-                </div>
-                <p className="text-sm text-gray-600">Avg. Engagement</p>
               </div>
             </div>
 
-            <div className="mt-4 flex justify-center">
-              <Link href="/dashboard/analytics">
-                <Button variant="outline">
-                  View Detailed Analytics
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="flex items-center">
+                <TrendingUp className="h-8 w-8 text-green-500" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Engagement Rate</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.engagement_rate}%</p>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  )
+
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="flex items-center">
+                <User className="h-8 w-8 text-purple-500" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Followers Gained</p>
+                  <p className="text-2xl font-bold text-gray-900">+{stats.followers_gained}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="flex items-center">
+                <Settings className="h-8 w-8 text-orange-500" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Connected Accounts</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.accounts_connected}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+              <div className="space-y-3">
+                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
+                  <div className="bg-indigo-100 p-2 rounded-lg mr-3">
+                    <User className="h-5 w-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Connect Social Account</p>
+                    <p className="text-sm text-gray-600">Link your social media profiles</p>
+                  </div>
+                </button>
+
+                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
+                  <div className="bg-green-100 p-2 rounded-lg mr-3">
+                    <Calendar className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Schedule Posts</p>
+                    <p className="text-sm text-gray-600">Plan your content calendar</p>
+                  </div>
+                </button>
+
+                <button className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
+                  <div className="bg-purple-100 p-2 rounded-lg mr-3">
+                    <TrendingUp className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">View Analytics</p>
+                    <p className="text-sm text-gray-600">Track your performance</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Getting Started</h3>
+              <div className="space-y-3">
+                <div className="flex items-center p-3 rounded-lg bg-green-50">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                  <div>
+                    <p className="font-medium text-gray-900">Account Created</p>
+                    <p className="text-sm text-gray-600">Welcome to LetsGrow!</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center p-3 rounded-lg">
+                  <div className="h-5 w-5 border-2 border-gray-300 rounded-full mr-3"></div>
+                  <div>
+                    <p className="font-medium text-gray-900">Connect Social Accounts</p>
+                    <p className="text-sm text-gray-600">Link your first social media account</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center p-3 rounded-lg">
+                  <div className="h-5 w-5 border-2 border-gray-300 rounded-full mr-3"></div>
+                  <div>
+                    <p className="font-medium text-gray-900">Generate First Post</p>
+                    <p className="text-sm text-gray-600">Let AI create your first post</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Account Management */}
+          <div className="mt-8 bg-white rounded-lg shadow-sm border p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Management</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button 
+                onClick={() => router.push('/pricing')}
+                className="flex items-center p-4 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+              >
+                <CreditCard className="h-6 w-6 text-indigo-600 mr-3" />
+                <div className="text-left">
+                  <p className="font-medium text-gray-900">Billing & Plans</p>
+                  <p className="text-sm text-gray-600">Manage subscription</p>
+                </div>
+              </button>
+
+              <button className="flex items-center p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors">
+                <Settings className="h-6 w-6 text-gray-600 mr-3" />
+                <div className="text-left">
+                  <p className="font-medium text-gray-900">Settings</p>
+                  <p className="text-sm text-gray-600">Account preferences</p>
+                </div>
+              </button>
+
+              <button className="flex items-center p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors">
+                <HelpCircle className="h-6 w-6 text-gray-600 mr-3" />
+                <div className="text-left">
+                  <p className="font-medium text-gray-900">Support</p>
+                  <p className="text-sm text-gray-600">Get help</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ProtectedRoute>
+  );
 }

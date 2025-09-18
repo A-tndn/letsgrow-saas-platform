@@ -4,6 +4,7 @@ db = SQLAlchemy()
 
 # Import all models here for easy access
 from .user import User, SubscriptionTier
+from .subscription import Subscription, Invoice, SubscriptionStatus, BillingCycle, PlanType
 from .social_accounts import SocialAccount, SocialPlatform  
 from .automation import Automation, AutomationStatus
 from .content import ContentQueue, ContentStatus

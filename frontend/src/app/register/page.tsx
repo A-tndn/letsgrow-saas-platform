@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
 
@@ -13,9 +13,24 @@ export default function Register() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { register } = useAuth();
+
+  useEffect(() => {
+    // Check if user came from pricing page with a selected plan
+    const storedPlan = localStorage.getItem('selected_plan');
+    const planParam = searchParams?.get('plan');
+
+    if (planParam) {
+      setSelectedPlan(planParam);
+      localStorage.setItem('selected_plan', planParam);
+    } else if (storedPlan) {
+      setSelectedPlan(storedPlan);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +56,14 @@ export default function Register() {
         email: formData.email,
         password: formData.password
       });
-      router.push('/dashboard');
+
+      // After successful registration, handle plan selection
+      if (selectedPlan) {
+        localStorage.removeItem('selected_plan');
+        router.push(`/checkout?plan=${selectedPlan}&cycle=monthly`);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     } finally {
@@ -54,6 +76,12 @@ export default function Register() {
       ...prev,
       [e.target.name]: e.target.value
     }));
+  };
+
+  const planNames = {
+    starter: 'Starter',
+    professional: 'Professional',
+    enterprise: 'Enterprise'
   };
 
   return (
@@ -72,6 +100,14 @@ export default function Register() {
               sign in to your existing account
             </Link>
           </p>
+
+          {selectedPlan && (
+            <div className="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+              <p className="text-center text-sm text-indigo-700">
+                🎉 You'll be subscribed to the <strong>{planNames[selectedPlan as keyof typeof planNames]}</strong> plan after registration
+              </p>
+            </div>
+          )}
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -180,6 +216,19 @@ export default function Register() {
             >
               {isLoading ? 'Creating account...' : 'Create account'}
             </button>
+          </div>
+
+          <div className="text-center">
+            <p className="text-xs text-gray-500">
+              By creating an account, you agree to our{' '}
+              <Link href="/terms" className="text-indigo-600 hover:text-indigo-500">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" className="text-indigo-600 hover:text-indigo-500">
+                Privacy Policy
+              </Link>
+            </p>
           </div>
         </form>
       </div>
