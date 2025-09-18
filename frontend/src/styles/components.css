@@ -1,0 +1,313 @@
+/* Component-specific styles for LetsGrow */
+
+/* Dashboard Sidebar Animation */
+@keyframes sidebar-slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sidebar-slide-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* Content Calendar Grid */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background-color: #e5e7eb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.calendar-day {
+  @apply bg-white p-2 min-h-[80px] border-0 transition-colors hover:bg-gray-50;
+}
+
+.calendar-day.today {
+  @apply bg-blue-50 text-blue-900;
+}
+
+.calendar-day.other-month {
+  @apply text-gray-400 bg-gray-50;
+}
+
+/* Growth Bot Status Indicators */
+.status-dot {
+  @apply inline-block w-2 h-2 rounded-full;
+}
+
+.status-active {
+  @apply bg-green-500;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.status-paused {
+  @apply bg-yellow-500;
+}
+
+.status-inactive {
+  @apply bg-gray-400;
+}
+
+.status-error {
+  @apply bg-red-500;
+}
+
+/* Social Platform Icons */
+.platform-icon {
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm;
+}
+
+.platform-icon.twitter {
+  @apply bg-blue-500;
+}
+
+.platform-icon.instagram {
+  @apply bg-pink-500;
+}
+
+.platform-icon.linkedin {
+  @apply bg-blue-700;
+}
+
+.platform-icon.reddit {
+  @apply bg-orange-500;
+}
+
+/* Content Type Badges */
+.content-type-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.content-type-badge.text {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.content-type-badge.image {
+  @apply bg-green-100 text-green-800;
+}
+
+.content-type-badge.video {
+  @apply bg-purple-100 text-purple-800;
+}
+
+.content-type-badge.poll {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+/* Analytics Charts Container */
+.chart-container {
+  @apply w-full h-64 sm:h-80 lg:h-96;
+}
+
+.chart-container canvas {
+  @apply w-full h-full;
+}
+
+/* Loading States */
+.content-skeleton {
+  @apply animate-pulse;
+}
+
+.content-skeleton .skeleton-line {
+  @apply h-4 bg-gray-200 rounded mb-2;
+}
+
+.content-skeleton .skeleton-line.short {
+  @apply w-3/4;
+}
+
+.content-skeleton .skeleton-line.medium {
+  @apply w-5/6;
+}
+
+.content-skeleton .skeleton-line.long {
+  @apply w-full;
+}
+
+/* Progress Bars */
+.progress-bar {
+  @apply w-full bg-gray-200 rounded-full h-2 overflow-hidden;
+}
+
+.progress-fill {
+  @apply h-full transition-all duration-300 ease-out rounded-full;
+}
+
+.progress-fill.primary {
+  @apply bg-blue-500;
+}
+
+.progress-fill.success {
+  @apply bg-green-500;
+}
+
+.progress-fill.warning {
+  @apply bg-yellow-500;
+}
+
+.progress-fill.error {
+  @apply bg-red-500;
+}
+
+/* Toast Notifications */
+.toast {
+  @apply fixed top-4 right-4 max-w-sm w-full bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50;
+  animation: toast-slide-in 0.3s ease-out;
+}
+
+.toast.success {
+  @apply border-green-200 bg-green-50;
+}
+
+.toast.error {
+  @apply border-red-200 bg-red-50;
+}
+
+.toast.warning {
+  @apply border-yellow-200 bg-yellow-50;
+}
+
+.toast.info {
+  @apply border-blue-200 bg-blue-50;
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Modal Overlays */
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  animation: modal-fade-in 0.2s ease-out;
+}
+
+.modal-content {
+  @apply bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto;
+  animation: modal-scale-in 0.2s ease-out;
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-scale-in {
+  from { 
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Dropdown Menus */
+.dropdown-menu {
+  @apply absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10;
+  animation: dropdown-slide-in 0.15s ease-out;
+}
+
+@keyframes dropdown-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tab Navigation */
+.tab-nav {
+  @apply flex border-b border-gray-200;
+}
+
+.tab-button {
+  @apply px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 transition-colors;
+}
+
+.tab-button.active {
+  @apply text-blue-600 border-blue-600;
+}
+
+/* Form Validation States */
+.form-field.error .input {
+  @apply border-red-300 focus:border-red-500 focus:ring-red-500;
+}
+
+.form-field.success .input {
+  @apply border-green-300 focus:border-green-500 focus:ring-green-500;
+}
+
+/* Responsive Utilities */
+@media (max-width: 640px) {
+  .mobile-stack > * {
+    @apply w-full mb-2;
+  }
+  
+  .mobile-hidden {
+    @apply hidden;
+  }
+  
+  .mobile-full {
+    @apply w-full;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print,
+  .sidebar,
+  .header,
+  .modal-overlay {
+    @apply hidden !important;
+  }
+  
+  .print-break {
+    page-break-after: always;
+  }
+  
+  body {
+    @apply text-black bg-white;
+  }
+}
+
+/* Accessibility Enhancements */
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .modal-overlay,
+  .modal-content,
+  .dropdown-menu {
+    animation: none !important;
+  }
+}
+
+/* Focus Management */
+.focus-trap {
+  @apply outline-none;
+}
+
+.sr-only {
+  @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+}
