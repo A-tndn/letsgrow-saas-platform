@@ -1,0 +1,367 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS Variables for LetsGrow Theme */
+:root {
+  /* Primary Brand Colors */
+  --primary: 220 100% 60%;      /* Blue-500 */
+  --primary-foreground: 0 0% 100%;
+  --primary-hover: 220 100% 55%; /* Blue-600 */
+  
+  /* Secondary Colors */
+  --secondary: 220 17% 96%;      /* Gray-100 */
+  --secondary-foreground: 220 17% 17%;
+  
+  /* Success Colors */
+  --success: 142 76% 36%;        /* Green-600 */
+  --success-foreground: 0 0% 100%;
+  
+  /* Warning Colors */
+  --warning: 38 92% 50%;         /* Orange-500 */
+  --warning-foreground: 0 0% 100%;
+  
+  /* Error Colors */
+  --error: 0 84% 60%;            /* Red-500 */
+  --error-foreground: 0 0% 100%;
+  
+  /* Neutral Colors */
+  --background: 0 0% 100%;
+  --foreground: 220 17% 17%;
+  --muted: 220 17% 96%;
+  --muted-foreground: 220 17% 46%;
+  --border: 220 17% 91%;
+  --input: 220 17% 96%;
+  --ring: 220 100% 60%;
+  
+  /* Card Colors */
+  --card: 0 0% 100%;
+  --card-foreground: 220 17% 17%;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Dark mode variables */
+.dark {
+  --background: 220 17% 7%;
+  --foreground: 220 17% 93%;
+  --primary: 220 100% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 17% 13%;
+  --secondary-foreground: 220 17% 93%;
+  --muted: 220 17% 13%;
+  --muted-foreground: 220 17% 63%;
+  --border: 220 17% 19%;
+  --input: 220 17% 13%;
+  --card: 220 17% 9%;
+  --card-foreground: 220 17% 93%;
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-gray-900 font-sans antialiased;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Custom Component Styles */
+@layer components {
+  /* Button Components */
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200;
+    @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    @apply px-4 py-2 min-h-[40px] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200;
+    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+    @apply px-4 py-2 min-h-[40px] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .btn-outline {
+    @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200;
+    @apply border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    @apply px-4 py-2 min-h-[40px] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200;
+    @apply text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+    @apply px-4 py-2 min-h-[40px] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs min-h-[32px];
+  }
+  
+  .btn-lg {
+    @apply px-6 py-3 text-base min-h-[48px];
+  }
+
+  /* Input Components */
+  .input {
+    @apply flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm;
+    @apply file:border-0 file:bg-transparent file:text-sm file:font-medium;
+    @apply placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  .textarea {
+    @apply flex min-h-[80px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm;
+    @apply placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    @apply disabled:cursor-not-allowed disabled:opacity-50 resize-none;
+  }
+
+  /* Card Components */
+  .card {
+    @apply rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200;
+  }
+  
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6 pb-4;
+  }
+  
+  .card-title {
+    @apply text-lg font-semibold leading-none tracking-tight text-gray-900;
+  }
+  
+  .card-description {
+    @apply text-sm text-gray-600;
+  }
+  
+  .card-content {
+    @apply p-6 pt-0;
+  }
+  
+  .card-footer {
+    @apply flex items-center p-6 pt-0;
+  }
+
+  /* Badge Components */
+  .badge {
+    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors;
+  }
+  
+  .badge-default {
+    @apply border-gray-200 bg-gray-100 text-gray-900;
+  }
+  
+  .badge-success {
+    @apply border-green-200 bg-green-100 text-green-800;
+  }
+  
+  .badge-warning {
+    @apply border-yellow-200 bg-yellow-100 text-yellow-800;
+  }
+  
+  .badge-error {
+    @apply border-red-200 bg-red-100 text-red-800;
+  }
+  
+  .badge-blue {
+    @apply border-blue-200 bg-blue-100 text-blue-800;
+  }
+
+  /* Social Platform Colors */
+  .platform-twitter {
+    @apply bg-blue-500 text-white;
+  }
+  
+  .platform-instagram {
+    @apply bg-pink-500 text-white;
+  }
+  
+  .platform-linkedin {
+    @apply bg-blue-700 text-white;
+  }
+  
+  .platform-reddit {
+    @apply bg-orange-500 text-white;
+  }
+
+  /* Dashboard Layout */
+  .dashboard-sidebar {
+    @apply fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out;
+  }
+  
+  .dashboard-main {
+    @apply min-h-screen bg-gray-50;
+  }
+  
+  .dashboard-content {
+    @apply pl-64 transition-all duration-300 ease-in-out;
+  }
+
+  /* Loading States */
+  .loading-spinner {
+    @apply animate-spin rounded-full border-2 border-gray-300 border-t-blue-600;
+  }
+  
+  .skeleton {
+    @apply animate-pulse bg-gray-200 rounded;
+  }
+
+  /* Form States */
+  .form-group {
+    @apply space-y-2;
+  }
+  
+  .form-label {
+    @apply text-sm font-medium text-gray-700;
+  }
+  
+  .form-error {
+    @apply text-sm text-red-600 mt-1;
+  }
+  
+  .form-help {
+    @apply text-sm text-gray-500 mt-1;
+  }
+}
+
+/* Custom Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Utility Classes */
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
+}
+
+.animate-slide-out {
+  animation: slideOut 0.2s ease-in;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Scrollbar Styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Focus Visible */
+.focus-visible:focus-visible {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+}
+
+/* Mobile Responsive Utilities */
+@media (max-width: 768px) {
+  .dashboard-sidebar {
+    @apply -translate-x-full;
+  }
+  
+  .dashboard-sidebar.open {
+    @apply translate-x-0;
+  }
+  
+  .dashboard-content {
+    @apply pl-0;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    @apply hidden;
+  }
+  
+  .print-break {
+    page-break-after: always;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .card {
+    @apply border-2 border-gray-900;
+  }
+  
+  .btn-primary {
+    @apply border-2 border-white;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
