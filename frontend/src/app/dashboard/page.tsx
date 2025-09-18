@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Crown,
   Zap,
+  Brain,
   Building2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -288,6 +289,16 @@ export default function DashboardPage() {
                   <div>
                     <p className="font-medium text-gray-900">Analytics Dashboard</p>
                     <p className="text-sm text-gray-600">Track performance and insights</p>
+                  </div>
+                </Link>
+
+                <Link href="/advanced" className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
+                  <div className="bg-purple-100 p-2 rounded-lg mr-3">
+                    <Brain className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Advanced AI Features</p>
+                    <p className="text-sm text-gray-600">Audience insights & brand voice analysis</p>
                   </div>
                 </Link>
               </div>
