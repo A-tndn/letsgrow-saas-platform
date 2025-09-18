@@ -263,11 +263,31 @@ export default function DashboardPage() {
 
                 <Link href="/scheduler" className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
                   <div className="bg-purple-100 p-2 rounded-lg mr-3">
-                    <TrendingUp className="h-5 w-5 text-purple-600" />
+                    <Calendar className="h-5 w-5 text-purple-600" />
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">Schedule Posts</p>
                     <p className="text-sm text-gray-600">Manage your content calendar</p>
+                  </div>
+                </Link>
+
+                <Link href="/automation" className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
+                  <div className="bg-indigo-100 p-2 rounded-lg mr-3">
+                    <Zap className="h-5 w-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">AI Automation</p>
+                    <p className="text-sm text-gray-600">Set up intelligent posting rules</p>
+                  </div>
+                </Link>
+
+                <Link href="/analytics" className="w-full text-left p-3 rounded-lg hover:bg-gray-50 flex items-center">
+                  <div className="bg-green-100 p-2 rounded-lg mr-3">
+                    <TrendingUp className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Analytics Dashboard</p>
+                    <p className="text-sm text-gray-600">Track performance and insights</p>
                   </div>
                 </Link>
               </div>
