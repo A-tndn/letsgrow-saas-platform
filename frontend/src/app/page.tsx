@@ -1,8 +1,5 @@
-'use client'
-
 import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
+import Link from 'next/link'
 import { 
   Zap, 
   BarChart3, 
@@ -15,10 +12,12 @@ import {
   Settings,
   Database,
   User,
-  Loader2
+  Loader2,
+  Menu,
+  X
 } from 'lucide-react'
-import Link from 'next/link'
 import { setupApi } from '@/lib/api'
+import { useAuth } from '@/hooks/useAuth'
 import toast from 'react-hot-toast'
 
 const features = [
@@ -57,239 +56,382 @@ const features = [
 const benefits = [
   'Save 10+ hours per week on social media management',
   'Increase engagement rates by up to 300%',
-  'Grow your follower count organically and consistently',
-  'Maintain consistent brand voice across all platforms',
-  'Get detailed insights to optimize your strategy'
+  'Grow your following 5x faster with AI optimization',
+  'Automated compliance with platform guidelines',
+  'Real-time analytics and performance tracking',
+  'Multi-team collaboration and workflow management'
 ]
 
-export default function HomePage() {
-  const [setupStatus, setSetupStatus] = useState<any>(null)
-  const [isSettingUp, setIsSettingUp] = useState(false)
-  const [showSetupCard, setShowSetupCard] = useState(false)
+interface SetupStatus {
+  database: string;
+  test_user: string;
+  total_users: number;
+  ready_for_testing: boolean;
+}
 
-  // Check setup status on page load
+// Navigation Component
+function Navigation() {
+  const { isAuthenticated, user, logout } = useAuth()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  return (
+    <nav className="bg-white shadow-sm border-b">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link href="/" className="text-2xl font-bold text-indigo-600">
+              LetsGrow
+            </Link>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:block">
+            <div className="ml-10 flex items-baseline space-x-4">
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                  <span className="text-gray-600 px-3 py-2 text-sm">
+                    Welcome, {user?.first_name}
+                  </span>
+                  <button
+                    onClick={logout}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-gray-600 hover:text-gray-900 p-2"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        {isMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t">
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="text-gray-600 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                  <span className="text-gray-600 block px-3 py-2 text-base">
+                    Welcome, {user?.first_name}
+                  </span>
+                  <button
+                    onClick={logout}
+                    className="text-gray-600 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-gray-600 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white block px-3 py-2 rounded-md text-base font-medium"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </nav>
+  )
+}
+
+export default function HomePage() {
+  const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null)
+  const [isInitializing, setIsInitializing] = useState(false)
+  const [showDevPanel, setShowDevPanel] = useState(false)
+
+  const checkSetupStatus = async () => {
+    try {
+      const status = await setupApi.getSetupStatus()
+      setSetupStatus(status)
+    } catch (error) {
+      console.error('Failed to check setup status:', error)
+      toast.error('Failed to check system status')
+    }
+  }
+
+  const initializeApp = async () => {
+    setIsInitializing(true)
+    try {
+      const result = await setupApi.initializeApp()
+      toast.success(result.message)
+      await checkSetupStatus()
+    } catch (error: any) {
+      toast.error(error.message || 'Initialization failed')
+    } finally {
+      setIsInitializing(false)
+    }
+  }
+
   useEffect(() => {
     checkSetupStatus()
   }, [])
 
-  const checkSetupStatus = async () => {
-    try {
-      const response = await setupApi.getSetupStatus()
-      setSetupStatus(response.status)
-      setShowSetupCard(!response.status?.ready_for_testing)
-    } catch (error) {
-      console.log('Could not check setup status - this is normal for first time setup')
-      setShowSetupCard(true)
-    }
-  }
-
-  const handleSetupApp = async () => {
-    setIsSettingUp(true)
-    try {
-      const response = await setupApi.initializeApp()
-      
-      if (response.success) {
-        toast.success('App setup completed successfully!')
-        setSetupStatus(response.details)
-        setShowSetupCard(false)
-        
-        // Show success details
-        if (response.details?.email && response.details?.password) {
-          toast.success(`Test account ready: ${response.details.email} / ${response.details.password}`, {
-            duration: 8000
-          })
-        }
-      } else {
-        toast.error('Setup failed: ' + response.error)
-      }
-    } catch (error) {
-      toast.error('Setup failed: ' + (error instanceof Error ? error.message : 'Unknown error'))
-    } finally {
-      setIsSettingUp(false)
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+
       {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6">
-              Grow Your Social Media
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                Automatically
-              </span>
+      <div className="bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+              <span className="block">Grow Your Social Media</span>
+              <span className="block text-indigo-600">Automatically with AI</span>
             </h1>
-
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Let AI create engaging content, schedule posts at optimal times, and grow your audience 
-              while you focus on what matters most - your business.
+            <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
+              The world's first dual-approach social media growth platform. Let AI handle everything automatically, or get data-driven insights for your own content.
             </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <Link href="/dashboard">
-                <Button size="lg" className="text-lg px-8 py-4">
-                  View Dashboard
+            <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
+              <div className="rounded-md shadow">
+                <Link
+                  href="/register"
+                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10"
+                >
+                  Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-
-            {/* Setup Card - Only show if app needs setup */}
-            {showSetupCard && (
-              <div className="max-w-2xl mx-auto mb-8">
-                <Card className="border-2 border-blue-200 shadow-xl bg-gradient-to-br from-blue-50 to-indigo-50">
-                  <CardHeader className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                      <Settings className="h-8 w-8 text-white" />
-                    </div>
-                    <CardTitle className="text-2xl text-blue-900">App Setup Required</CardTitle>
-                    <CardDescription className="text-blue-700">
-                      Click the button below to initialize the database and create a test account for this remixed app.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-center">
-                    <Button 
-                      onClick={handleSetupApp}
-                      disabled={isSettingUp}
-                      size="lg"
-                      className="text-lg px-8 py-4 mb-4"
-                    >
-                      {isSettingUp ? (
-                        <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Setting up...
-                        </>
-                      ) : (
-                        <>
-                          <Database className="mr-2 h-5 w-5" />
-                          Setup App (One-Click)
-                        </>
-                      )}
-                    </Button>
-                    
-                    <div className="text-sm text-blue-600 space-y-1">
-                      <div className="flex items-center justify-center gap-2">
-                        <Database className="h-4 w-4" />
-                        <span>Creates database tables</span>
-                      </div>
-                      <div className="flex items-center justify-center gap-2">
-                        <User className="h-4 w-4" />
-                        <span>Creates test account (test@example.com / test123)</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                </Link>
               </div>
-            )}
-
-            {/* Setup Status Display */}
-            {setupStatus && !showSetupCard && (
-              <div className="max-w-xl mx-auto mb-8">
-                <Card className="border-green-200 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50">
-                  <CardContent className="pt-6">
-                    <div className="text-center">
-                      <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-                      <h3 className="text-lg font-semibold text-green-900 mb-2">App Ready for Testing</h3>
-                      <p className="text-green-700 text-sm">
-                        Database: {setupStatus.database} • Test User: {setupStatus.test_user}
-                      </p>
-                      {setupStatus.email && (
-                        <p className="text-green-600 text-sm mt-2">
-                          Test account: <strong>{setupStatus.email}</strong>
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+              <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
+                <button
+                  onClick={() => setShowDevPanel(!showDevPanel)}
+                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
+                >
+                  Developer Panel
+                </button>
               </div>
-            )}
-
-            <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-500">
-              <span className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                No credit card required
-              </span>
-              <span className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                14-day free trial
-              </span>
-              <span className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                Cancel anytime
-              </span>
             </div>
           </div>
         </div>
-      </section>
+      </div>
+
+      {/* Developer Panel */}
+      {showDevPanel && (
+        <div className="bg-gray-100 border-y border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                  <Settings className="h-5 w-5 mr-2" />
+                  System Status & Setup
+                </h3>
+                <button
+                  onClick={() => setShowDevPanel(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <Database className="h-8 w-8 text-blue-500 mr-3" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Database</p>
+                    <p className={`text-sm ${setupStatus?.database === 'Connected' ? 'text-green-600' : 'text-red-600'}`}>
+                      {setupStatus?.database || 'Unknown'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <User className="h-8 w-8 text-green-500 mr-3" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Test User</p>
+                    <p className={`text-sm ${setupStatus?.test_user === 'Exists' ? 'text-green-600' : 'text-red-600'}`}>
+                      {setupStatus?.test_user || 'Unknown'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center p-4 bg-gray-50 rounded-lg">
+                  <Users className="h-8 w-8 text-purple-500 mr-3" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Total Users</p>
+                    <p className="text-sm text-gray-600">
+                      {setupStatus?.total_users ?? 'Loading...'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <CheckCircle className={`h-5 w-5 mr-2 ${setupStatus?.ready_for_testing ? 'text-green-500' : 'text-red-500'}`} />
+                  <span className={`text-sm font-medium ${setupStatus?.ready_for_testing ? 'text-green-700' : 'text-red-700'}`}>
+                    {setupStatus?.ready_for_testing ? 'Ready for Testing' : 'Setup Required'}
+                  </span>
+                </div>
+
+                <div className="flex space-x-3">
+                  <button
+                    onClick={checkSetupStatus}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    Refresh Status
+                  </button>
+
+                  <button
+                    onClick={initializeApp}
+                    disabled={isInitializing}
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    {isInitializing ? (
+                      <>
+                        <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                        Initializing...
+                      </>
+                    ) : (
+                      'Initialize App'
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {setupStatus?.ready_for_testing && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-sm text-green-700">
+                    <strong>Test Account:</strong> test@example.com / test123
+                  </p>
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center mt-2 text-sm font-medium text-green-600 hover:text-green-500"
+                  >
+                    Sign in with test account →
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <div className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:text-center">
+            <h2 className="text-base text-indigo-600 font-semibold tracking-wide uppercase">Features</h2>
+            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
               Everything you need to dominate social media
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our AI-powered platform handles the heavy lifting so you can focus on building relationships and growing your business.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="card-hover border-0 shadow-lg">
-                <CardHeader>
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
-                    <feature.icon className="h-6 w-6 text-white" />
+          <div className="mt-10">
+            <div className="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10 lg:grid-cols-3">
+              {features.map((feature) => (
+                <div key={feature.title} className="relative">
+                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                    <feature.icon className="h-6 w-6" aria-hidden="true" />
                   </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base leading-relaxed">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
+                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">{feature.title}</p>
+                  <dd className="mt-2 ml-16 text-base text-gray-500">{feature.description}</dd>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-8">
-            Join thousands of creators who are already growing faster
-          </h2>
-
-          <div className="space-y-4 mb-12">
-            {benefits.map((benefit, index) => (
-              <div key={index} className="flex items-center justify-center text-lg">
-                <CheckCircle className="h-6 w-6 text-green-500 mr-3 flex-shrink-0" />
-                <span className="text-gray-700">{benefit}</span>
-              </div>
-            ))}
+      <div className="bg-indigo-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="lg:text-center">
+            <h2 className="text-base text-indigo-200 font-semibold tracking-wide uppercase">Benefits</h2>
+            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-white sm:text-4xl">
+              Transform your social media results
+            </p>
           </div>
 
-          <Link href="/dashboard">
-            <Button size="lg" className="text-lg px-8 py-4">
-              View Dashboard
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
+          <div className="mt-10">
+            <div className="space-y-4">
+              {benefits.map((benefit, index) => (
+                <div key={index} className="flex items-center">
+                  <CheckCircle className="h-6 w-6 text-indigo-200 mr-3" />
+                  <span className="text-lg text-white">{benefit}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
+
+      {/* CTA Section */}
+      <div className="bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="lg:text-center">
+            <h2 className="text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              Ready to grow your social media automatically?
+            </h2>
+            <p className="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+              Join thousands of creators and businesses who are already growing faster with LetsGrow.
+            </p>
+            <div className="mt-8">
+              <Link
+                href="/register"
+                className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <h3 className="text-2xl font-bold mb-4">LetsGrow</h3>
-          <p className="text-gray-400 mb-8">
-            Social Media Automation Made Simple
-          </p>
-          <div className="text-sm text-gray-500">
-            © 2025 LetsGrow. All rights reserved.
+      <footer className="bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="border-t border-gray-200 pt-8">
+            <p className="text-base text-gray-400 text-center">
+              © 2025 LetsGrow. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
